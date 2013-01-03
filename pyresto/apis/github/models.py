@@ -72,11 +72,17 @@ class Repo(GitHubModel):
     keys = Many(Key, '{self._current_path}/keys?per_page=100')
 
 
+class Gist(GitHubModel):
+    _path = '/users/{user}/gists'
+    _pk = 'user'
+
+
 class User(GitHubModel):
     _path = '/users/{login}'
     _pk = 'login'
 
     repos = Many(Repo, '{self._current_path}/repos?type=all&per_page=100')
+    gists = Many(Gist, '{self._current_path}/gists?per_page=100')
 
 
 class Me(User):
