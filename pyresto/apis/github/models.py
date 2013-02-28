@@ -2,7 +2,9 @@
 
 from requests.auth import AuthBase, HTTPBasicAuth  # third party
 
-from ...core import Foreign, Many, Model, AuthList, enable_auth
+from ...core import Model
+from ...relations import Foreign, Many
+from ...auth import AuthList, enable_auth
 
 
 class AppQSAuth(AuthBase):

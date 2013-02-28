@@ -1,7 +1,7 @@
 __author__ = 'pavelmeshkoy'
 from requests.auth import AuthBase
 from abc import ABCMeta, abstractmethod
-from libs.pyresto.exceptions import *
+from pyresto.exceptions import *
 
 __all__ = ('Auth', 'AuthList', 'enable_auth')
 
