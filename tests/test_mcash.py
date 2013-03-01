@@ -89,6 +89,4 @@ class TestModel(unittest.TestCase):
             organizationId='12345678'
         )
         obj.save()
-        import pudb
-        pudb.set_trace()
         obj.delete()
