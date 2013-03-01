@@ -36,6 +36,23 @@ class TestModelClass(McashModel):
         pubkey = fields.StringField()
 
 
+class TestRelatedModelClass(McashModel):
+    _url_base = "https://playgroundmcashservice.appspot.com"
+    _path = "pos/{id}/"
+    _pk = ('id',)
+    _auth = SecretAuth()
+    _create_method = 'PUT'
+    _exclude_from_save = ('id',)
+
+    class Form(wtforms.Form):
+        id = fields.StringField()
+        name = fields.StringField()
+        type = fields.StringField()
+        netmask = fields.StringField()
+        secret = fields.StringField()
+        pubkey = fields.StringField()
+
+
 class TestModel(unittest.TestCase):
 
     def test_constructor(self):
@@ -90,3 +107,23 @@ class TestModel(unittest.TestCase):
         )
         obj.save()
         obj.delete()
+
+    def test_child_model(self):
+        merchant = TestModelClass(
+            secret='secret',
+            businessName='ABC corp.',
+            jurisdiction='NO',
+            organizationId='12345678'
+        )
+        merchant.save()
+        pos = TestRelatedModelClass(
+            parent=merchant,
+            name='Kasse 3',
+            type='store',
+            netmask='',
+            secret='secret',
+            id='123'
+        )
+        pos.save()
+        pos = TestRelatedModelClass.get('123', parent=merchant)
+        self.assertEqual(pos.name, 'Kasse 3')

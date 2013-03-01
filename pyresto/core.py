@@ -148,7 +148,7 @@ class Model(object):
     #: current :class:`Model` instance while fetching its related resources.
     _get_params = dict()
 
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         """
         Constructor for model instances. All named parameters passed to this
         method are bound to the newly created instance. Any property names
@@ -160,6 +160,8 @@ class Model(object):
         to be used by the :class:`Foreign` relationship class as the id of the
         foreign :class:`Model`.
         """
+
+        self._parent = parent
 
         self.__dict__.update(kwargs)
 
@@ -182,13 +184,15 @@ class Model(object):
 
     @property
     def _pk_vals(self):
-        if not self.__pk_vals:
-            if hasattr(self, '_pyresto_owner'):
-                self.__pk_vals = self. \
-                                     _pyresto_owner._pk_vals[:len(self._pk) - 1] + (self._id,)
-            else:
-                self.__pk_vals = (None,) * (len(self._pk) - 1) + (self._id,)
+        # if not self.__pk_vals:
+        #     if hasattr(self, '_pyresto_owner'):
+        #         self.__pk_vals = self. \
+        #                              _pyresto_owner._pk_vals[:len(self._pk) - 1] + (self._id,)
+        #     else:
+        #         self.__pk_vals = (None,) * (len(self._pk) - 1) + (self._id,)
 
+        # return self.__pk_vals
+        self.__pk_vals = (None,) * (len(self._pk) - 1) + (self._id,)
         return self.__pk_vals
 
     @_pk_vals.setter
@@ -208,7 +212,7 @@ class Model(object):
 
     @property
     def _current_path(self):
-        return self._path.format(**self._footprint)
+        return getattr(self._parent, '_current_path', "") + self._path.format(**self._footprint)
 
     @classmethod
     def _get_sanitized_url(cls, url):
@@ -334,7 +338,7 @@ class Model(object):
         auth = kwargs.pop('auth', cls._auth)
 
         ids = dict(zip(cls._pk, args))
-        path = cls._path.format(**ids)
+        path = getattr(kwargs.pop('parent', None), '_current_path', "") + cls._path.format(**ids)
         data = cls._rest_call(url=path, auth=auth).data
 
         if not data:

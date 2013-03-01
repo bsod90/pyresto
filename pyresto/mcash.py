@@ -17,7 +17,10 @@ class McashModel(Model):
     # But also can be a PUT
     _create_method = 'POST'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, parent=None, *args, **kwargs):
+
+        self._parent = parent
+
         self.__data = McashModel.Data()
         self.__data.__dict__.update(kwargs)
 
@@ -83,7 +86,7 @@ class McashModel(Model):
 
     @property
     def _current_list_path(self):
-        return self._list_path.format(**self._footprint)
+        return getattr(self._parent, '_current_list_path', "") + self._list_path.format(**self._footprint)
 
     def _do_post(self, data={}, *args, **kwargs):
         path = self._current_list_path
