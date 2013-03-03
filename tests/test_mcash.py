@@ -106,7 +106,7 @@ class TestModel(unittest.TestCase):
             organizationId='12345678'
         )
         obj.save()
-        obj.delete()
+        obj.remove()
 
     def test_child_model(self):
         merchant = TestModelClass(
@@ -127,3 +127,4 @@ class TestModel(unittest.TestCase):
         pos.save()
         pos = TestRelatedModelClass.get('123', parent=merchant)
         self.assertEqual(pos.name, 'Kasse 3')
+        pos.remove()

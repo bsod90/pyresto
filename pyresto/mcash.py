@@ -156,10 +156,14 @@ class McashModel(Model):
         self._changed.clear()
         return self
 
-    def delete(self):
+    def remove(self):
         """
             Does DELETE request on resource Url
             delete() originally a classmethod in Pyresto
             It's better to keep it in instance
         """
+        # Actually there is a delete in pyresto class
+        # But we don't like it to be a @classmethod
+        # So, it's just a wrapper for delete, but using
+        # different name to avoid collision
         return self.__class__.delete(self)
