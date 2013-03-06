@@ -16,6 +16,14 @@ class McashModel(Model):
     # By default use POST for creating new items.
     # But also can be a PUT
     _create_method = 'POST'
+    # Fields that can be set only once, during creation
+    _not_editable_fields = ()
+    # Path to retrieve a list of objects and to make POST
+    # requests
+    _list_path = None
+    # Sometimes not all model fields should be sent
+    # in PUT request
+    _exclude_from_save = ()
 
     def __init__(self, parent=None, *args, **kwargs):
 
@@ -39,7 +47,7 @@ class McashModel(Model):
         if not self.__form.validate():
             raise ValueError  # TODO: raise more valuable info about Error
 
-        self._changed = set()
+        self._changed = set(kwargs.keys())
 
     def __fetch(self):
         # Overriden __fetch
@@ -75,6 +83,10 @@ class McashModel(Model):
         # That comes using __form
         if not key.startswith('_'):
             if key in self.__form:
+                if key in self._not_editable_fields:
+                    if not key in self._changed:
+                        if getattr(self.__data, key, None):
+                            raise AttributeError('%s field can be set only once. Changing the value is not allowed' % key)
                 self._changed.add(key)
                 setattr(self.__data, key, value)
                 self.__form = self.__class__.Form(obj=self.__data)
@@ -86,7 +98,7 @@ class McashModel(Model):
 
     @property
     def _current_list_path(self):
-        return getattr(self._parent, '_current_list_path', "") + self._list_path.format(**self._footprint)
+        return getattr(self._parent, '_current_path', "") + self._list_path.format(**self._footprint)
 
     def _do_post(self, data={}, *args, **kwargs):
         path = self._current_list_path
@@ -109,7 +121,9 @@ class McashModel(Model):
     @classmethod
     def get(cls, *args, **kwargs):
         """Alias for Pyresto read() method"""
-        return cls.read(*args, **kwargs)
+        result = cls.read(*args, **kwargs)
+        result._changed = []
+        return result
 
     def save(self, *args, **kwargs):
         """
@@ -128,7 +142,9 @@ class McashModel(Model):
         # + Everything that is None
         data = self.__data.__dict__.copy()
         for key in data.keys():
-            if data[key] is None or key in self._exclude_from_save:
+            if data[key] is None \
+                or key in self._exclude_from_save \
+                    or (key in self._not_editable_fields and not key in self._changed):
                 del data[key]
 
         # Check if we want use POST or PUT

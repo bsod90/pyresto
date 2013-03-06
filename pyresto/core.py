@@ -338,13 +338,14 @@ class Model(object):
         auth = kwargs.pop('auth', cls._auth)
 
         ids = dict(zip(cls._pk, args))
-        path = getattr(kwargs.pop('parent', None), '_current_path', "") + cls._path.format(**ids)
+        parent = kwargs.pop('parent', None)
+        path = getattr(parent, '_current_path', "") + cls._path.format(**ids)
         data = cls._rest_call(url=path, auth=auth).data
 
         if not data:
             return None
 
-        instance = cls(**data)
+        instance = cls(parent=parent, **data)
         instance._pk_vals = args
         instance._fetched = True
         if auth:
