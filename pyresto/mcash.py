@@ -122,7 +122,9 @@ class McashModel(Model):
     def get(cls, *args, **kwargs):
         """Alias for Pyresto read() method"""
         result = cls.read(*args, **kwargs)
-        result._changed = []
+        result._changed = set()
+        for item in zip(result._pk, result._pk_vals):
+            setattr(result, item[0], item[1])
         return result
 
     def save(self, *args, **kwargs):
