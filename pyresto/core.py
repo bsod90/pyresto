@@ -72,6 +72,8 @@ class Model(object):
 
     __pk_vals = None
 
+    __fetched_path = None
+
     _changed = None
 
     #: The class variable that holds the bae uel for the API endpoint for the
@@ -212,7 +214,10 @@ class Model(object):
 
     @property
     def _current_path(self):
-        return getattr(self._parent, '_current_path', "") + self._path.format(**self._footprint)
+        if not self.__fetched_path:
+            return getattr(self._parent, '_current_path', "") + self._path.format(**self._footprint)
+        else:
+            return self.__fetched_path
 
     @classmethod
     def _get_sanitized_url(cls, url):
@@ -339,7 +344,12 @@ class Model(object):
 
         ids = dict(zip(cls._pk, args))
         parent = kwargs.pop('parent', None)
-        path = getattr(parent, '_current_path', "") + cls._path.format(**ids)
+        # Sometimes we need to pass exact path to read method
+        # instead of list of PKs
+        if 'path' in kwargs:
+            path = kwargs.pop('path')
+        else:
+            path = getattr(parent, '_current_path', "") + cls._path.format(**ids)
         data = cls._rest_call(url=path, auth=auth).data
 
         if not data:
@@ -348,6 +358,7 @@ class Model(object):
         instance = cls(parent=parent, **data)
         instance._pk_vals = args
         instance._fetched = True
+        instance.__fetched_path = path
         if auth:
             instance._auth = auth
 
