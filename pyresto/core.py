@@ -182,7 +182,7 @@ class Model(object):
         if self.__pk_vals:
             return self.__pk_vals[-1]
         else:  # assuming last pk is defined on self!
-            return getattr(self, self._pk[-1])
+            return getattr(self, self._pk[-1]) if len(self._pk) > 1 else None
 
     @property
     def _pk_vals(self):
